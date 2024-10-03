@@ -11,14 +11,10 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-const auth = firebase.auth();
 const db = firebase.firestore();
 
 // DOM Elements
-const loginContainer = document.getElementById('loginContainer');
 const dashboardContainer = document.getElementById('dashboardContainer');
-const loginForm = document.getElementById('loginForm');
-const passwordInput = document.getElementById('password');
 const searchInput = document.getElementById('searchInput');
 const contactsContent = document.getElementById('contactsContent');
 const paymentsContent = document.getElementById('paymentsContent');
@@ -38,42 +34,8 @@ let payments = [];
 let currentDeleteItem = null;
 let showDeleteButtons = false;
 
-// Login Form Submission
-loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = 'chetan23rd@admin.com';
-    const password = passwordInput.value;
-
-    auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            console.log('Login successful');
-            showDashboard();
-            fetchData();
-        })
-        .catch((error) => {
-            console.error('Login error:', error);
-            alert('Login failed. Please check your password and try again.');
-        });
-});
-
-// Auth State Change Listener
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        showDashboard();
-        fetchData();
-    } else {
-        showLogin();
-    }
-});
-
-// Show/Hide Functions
-function showLogin() {
-    loginContainer.classList.remove('hidden');
-    dashboardContainer.classList.add('hidden');
-}
-
+// Show Dashboard
 function showDashboard() {
-    loginContainer.classList.add('hidden');
     dashboardContainer.classList.remove('hidden');
 }
 
@@ -256,11 +218,5 @@ function convertToCSV(data) {
 }
 
 // Initial setup
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        showDashboard();
-        fetchData();
-    } else {
-        showLogin();
-    }
-});
+showDashboard();
+fetchData();
