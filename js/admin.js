@@ -18,12 +18,16 @@ const dashboardContainer = document.getElementById('dashboardContainer');
 const searchInput = document.getElementById('searchInput');
 const contactsContent = document.getElementById('contactsContent');
 const paymentsContent = document.getElementById('paymentsContent');
+const codContent = document.getElementById('codContent');
 const contactsTableBody = document.getElementById('contactsTableBody');
 const paymentsTableBody = document.getElementById('paymentsTableBody');
+const codTableBody = document.getElementById('codTableBody');
 const contactsTab = document.querySelector('.tab[data-tab="contacts"]');
 const paymentsTab = document.querySelector('.tab[data-tab="payments"]');
+const codTab = document.querySelector('.tab[data-tab="cod"]');
 const exportContacts = document.getElementById('exportContacts');
 const exportPayments = document.getElementById('exportPayments');
+const exportCOD = document.getElementById('exportCOD');
 const confirmationModal = document.getElementById('confirmationModal');
 const confirmDelete = document.getElementById('confirmDelete');
 const cancelDelete = document.getElementById('cancelDelete');
@@ -31,6 +35,7 @@ const toggleDeleteBtn = document.getElementById('toggleDeleteBtn');
 
 let contacts = [];
 let payments = [];
+let codOrders = [];
 let currentDeleteItem = null;
 let showDeleteButtons = false;
 
@@ -44,12 +49,15 @@ async function fetchData() {
     try {
         const contactsSnapshot = await db.collection('contacts').orderBy('timestamp', 'desc').get();
         const paymentsSnapshot = await db.collection('payments').orderBy('timestamp', 'desc').get();
+        const codSnapshot = await db.collection('cod').orderBy('timestamp', 'desc').get();
 
         contacts = contactsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         payments = paymentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        codOrders = codSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         renderContacts();
         renderPayments();
+        renderCODOrders();
         updateUnreadCounts();
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -85,12 +93,28 @@ function renderPayments() {
     `).join('');
 }
 
+function renderCODOrders() {
+    codTableBody.innerHTML = codOrders.map((order, index) => `
+        <tr>
+            <td>${order.name || 'N/A'}</td>
+            <td>${order.dateOfPasses || 'N/A'}</td>
+            <td>₹${order.amountToPay || 'N/A'}</td>
+            <td>${order.contactNumber || 'N/A'}</td>
+            <td class="action-column ${showDeleteButtons ? '' : 'hidden'}">
+                <button class="action-btn delete-btn" onclick="showDeleteConfirmation('cod', '${order.id}')">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
 function updateUnreadCounts() {
     const unreadContacts = contacts.filter(contact => !contact.isRead).length;
     const unreadPayments = payments.filter(payment => !payment.isRead).length;
+    const unreadCOD = codOrders.filter(order => !order.isRead).length;
 
     contactsTab.textContent = `Contacts ${unreadContacts > 0 ? `(${unreadContacts})` : ''}`;
     paymentsTab.textContent = `Payments ${unreadPayments > 0 ? `(${unreadPayments})` : ''}`;
+    codTab.textContent = `COD Orders ${unreadCOD > 0 ? `(${unreadCOD})` : ''}`;
 }
 
 // Delete Functionality
@@ -119,6 +143,9 @@ async function deleteItem(type, id) {
         } else if (type === 'payments') {
             payments = payments.filter(payment => payment.id !== id);
             renderPayments();
+        } else if (type === 'cod') {
+            codOrders = codOrders.filter(order => order.id !== id);
+            renderCODOrders();
         }
         updateUnreadCounts();
     } catch (error) {
@@ -136,6 +163,7 @@ toggleDeleteBtn.addEventListener('click', () => {
     });
     renderContacts();
     renderPayments();
+    renderCODOrders();
 });
 
 // Search Functionality
@@ -143,6 +171,7 @@ searchInput.addEventListener('input', () => {
     const searchTerm = searchInput.value.toLowerCase();
     filterTable(contactsTableBody, contacts, searchTerm, renderContactRow);
     filterTable(paymentsTableBody, payments, searchTerm, renderPaymentRow);
+    filterTable(codTableBody, codOrders, searchTerm, renderCODRow);
 });
 
 function filterTable(tableBody, data, searchTerm, renderRow) {
@@ -182,6 +211,20 @@ function renderPaymentRow(payment) {
     `;
 }
 
+function renderCODRow(order) {
+    return `
+        <tr>
+            <td>${order.name || 'N/A'}</td>
+            <td>${order.dateOfPasses || 'N/A'}</td>
+            <td>₹${order.amountToPay || 'N/A'}</td>
+            <td>${order.contactNumber || 'N/A'}</td>
+            <td class="action-column ${showDeleteButtons ? '' : 'hidden'}">
+                <button class="action-btn delete-btn" onclick="showDeleteConfirmation('cod', '${order.id}')">Delete</button>
+            </td>
+        </tr>
+    `;
+}
+
 // Tab Switching
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -195,6 +238,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 // Export to CSV Functionality
 exportContacts.addEventListener('click', () => exportToCSV(contacts, 'contacts'));
 exportPayments.addEventListener('click', () => exportToCSV(payments, 'payments'));
+exportCOD.addEventListener('click', () => exportToCSV(codOrders, 'cod_orders'));
 
 function exportToCSV(data, filename) {
     const csvContent = convertToCSV(data);
