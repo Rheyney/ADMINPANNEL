@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="./css/admin.css">
 </head>
 <body>
-
-
     <div id="dashboardContainer" class="dashboard hidden">
         <header>
             <img src="./assests/MataRani.jpg" alt="Chetan Nagda" class="profile-photo">
@@ -19,6 +17,7 @@
         <nav class="tabs">
             <button class="tab active" data-tab="contacts">Contacts</button>
             <button class="tab" data-tab="payments">Payments</button>
+            <button class="tab" data-tab="cod">COD Orders</button>
         </nav>
 
         <div class="dashboard-content">
@@ -64,6 +63,25 @@
                         </tr>
                     </thead>
                     <tbody id="paymentsTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="codContent" class="content hidden">
+                <div class="table-header">
+                    <h2>COD Orders</h2>
+                    <button id="exportCOD" class="export-btn">Export to CSV</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Contact</th>
+                            <th class="action-column hidden">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="codTableBody"></tbody>
                 </table>
             </div>
         </div>
